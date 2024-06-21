@@ -35,7 +35,8 @@ function CreateCabinForm() {
   });
 
   function onSubmit(newCabin) {
-    mutate(newCabin);
+    console.log(newCabin);
+    mutate({ ...newCabin, image: newCabin.image[0] });
   }
 
   // function onError(errors) {
@@ -119,7 +120,9 @@ function CreateCabinForm() {
           disabled={isPending}
           id="image"
           accept="image/*"
-          {...register("image")}
+          {...register("image", {
+            required: "This is mandatory field.",
+          })}
         />
       </FormRow>
 
