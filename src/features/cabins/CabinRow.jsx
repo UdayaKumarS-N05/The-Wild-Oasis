@@ -3,7 +3,10 @@ import { formatCurrency } from "../../utils/helpers";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteCabin } from "../../services/apiCabins";
 import { HiOutlineTrash } from "react-icons/hi2";
+import { HiOutlinePencil } from "react-icons/hi2";
 import toast from "react-hot-toast";
+import CreateCabinForm from "./CreateCabinForm";
+import { useState } from "react";
 const TableRow = styled.div`
   display: grid;
   grid-template-columns: 0.6fr 1.8fr 2.2fr 1fr 1fr 1fr;
@@ -44,6 +47,7 @@ const Discount = styled.div`
 `;
 
 function CabinRow({ cabin }) {
+  const [showForm, setShowForm] = useState();
   const { id, name, maxCapacity, image, regularPrice, discount } = cabin;
   const queryClient = useQueryClient();
 
@@ -59,20 +63,39 @@ function CabinRow({ cabin }) {
   });
 
   return (
-    <TableRow role="row">
-      <Img src={image}></Img>
-      <Cabin>{name}</Cabin>
-      <div>Fits up to {maxCapacity} people.</div>
-      <Price>{formatCurrency(regularPrice)}</Price>
-      <Discount>{formatCurrency(discount)}</Discount>
-      <HiOutlineTrash
-        style={{
-          fontSize: "2rem",
-        }}
-        onClick={() => mutate(id)}
-        disabled={isPending}
-      ></HiOutlineTrash>
-    </TableRow>
+    <>
+      <TableRow role="row">
+        <Img src={image}></Img>
+        <Cabin>{name}</Cabin>
+        <div>Fits up to {maxCapacity} people.</div>
+        <Price>{formatCurrency(regularPrice)}</Price>
+        <Discount>{formatCurrency(discount)}</Discount>
+        <div
+          style={{
+            display: "flex",
+            gap: "15px",
+            alignItems: "center",
+            justifyContent: "space-evenly",
+          }}
+        >
+          <HiOutlinePencil
+            style={{
+              fontSize: "2rem",
+            }}
+            onClick={() => setShowForm(!showForm)}
+            disabled={isPending}
+          ></HiOutlinePencil>
+          <HiOutlineTrash
+            style={{
+              fontSize: "2rem",
+            }}
+            onClick={() => mutate(id)}
+            disabled={isPending}
+          ></HiOutlineTrash>
+        </div>
+      </TableRow>
+      {showForm && <CreateCabinForm cabinToEdit={cabin} />}
+    </>
   );
 }
 
