@@ -1,12 +1,17 @@
 import styled from "styled-components";
-import { formatCurrency } from "../../utils/helpers";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteCabin } from "../../services/apiCabins";
-import { HiOutlineTrash } from "react-icons/hi2";
-import { HiOutlinePencil } from "react-icons/hi2";
-import toast from "react-hot-toast";
-import CreateCabinForm from "./CreateCabinForm";
+import { useDeleteCabin } from "./useDeleteCabin";
 import { useState } from "react";
+
+import { formatCurrency } from "../../utils/helpers";
+import CreateCabinForm from "./CreateCabinForm";
+
+import {
+  HiOutlineTrash,
+  HiOutlinePencil,
+  HiOutlineSquare2Stack,
+} from "react-icons/hi2";
+import { useCreateCabin } from "./useCreateCabin";
+
 const TableRow = styled.div`
   display: grid;
   grid-template-columns: 0.6fr 1.8fr 2.2fr 1fr 1fr 1fr;
@@ -48,20 +53,21 @@ const Discount = styled.div`
 
 function CabinRow({ cabin }) {
   const [showForm, setShowForm] = useState();
-  const { id, name, maxCapacity, image, regularPrice, discount } = cabin;
-  const queryClient = useQueryClient();
+  const { isPending, mutate } = useDeleteCabin();
+  const { isCreating, createCabin } = useCreateCabin();
+  const { id, name, maxCapacity, image, regularPrice, description, discount } =
+    cabin;
 
-  const { isPending, mutate } = useMutation({
-    mutationFn: deleteCabin,
-    onSuccess: () => {
-      toast.success("Cabin successfully deleted!");
-      queryClient.invalidateQueries({
-        queryKey: ["cabins"],
-      });
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
+  function handleDuplicate() {
+    createCabin({
+      name: `Copy of ${name}`,
+      maxCapacity,
+      image,
+      regularPrice,
+      description,
+      discount,
+    });
+  }
   return (
     <>
       <TableRow role="row">
@@ -69,7 +75,11 @@ function CabinRow({ cabin }) {
         <Cabin>{name}</Cabin>
         <div>Fits up to {maxCapacity} people.</div>
         <Price>{formatCurrency(regularPrice)}</Price>
-        <Discount>{formatCurrency(discount)}</Discount>
+        {discount ? (
+          <Discount>{formatCurrency(discount)}</Discount>
+        ) : (
+          <span>&mdash;</span>
+        )}
         <div
           style={{
             display: "flex",
@@ -78,6 +88,13 @@ function CabinRow({ cabin }) {
             justifyContent: "space-evenly",
           }}
         >
+          <HiOutlineSquare2Stack
+            style={{
+              fontSize: "2rem",
+            }}
+            onClick={handleDuplicate}
+            disabled={isCreating}
+          ></HiOutlineSquare2Stack>
           <HiOutlinePencil
             style={{
               fontSize: "2rem",
@@ -94,7 +111,9 @@ function CabinRow({ cabin }) {
           ></HiOutlineTrash>
         </div>
       </TableRow>
-      {showForm && <CreateCabinForm cabinToEdit={cabin} />}
+      {showForm && (
+        <CreateCabinForm cabinToEdit={cabin} setShowForm={setShowForm} />
+      )}
     </>
   );
 }
